@@ -1,0 +1,52 @@
+{
+  "id": "example",
+  "title": "Synthetic example — weekly 'follow' clicks drop after a logging-spec release",
+  "kind": "root_cause",
+  "symptom": "The weekly report shows follow-click users -6% and follow events -9% week over week (weekly daily means). Establish whether this is a real decline or an aggregation problem, and what happened.",
+  "window": { "start": "2026-01-05", "end": "2026-01-25" },
+  "calendar": [
+    { "start": "2026-01-08", "end": "2026-01-16", "summary": "Client logging spec v5 rollout (iOS/Android)" },
+    { "start": "2026-01-14", "summary": "Home feed layout update" }
+  ],
+  "answer": {
+    "summary": "Part of the drop is an artifact: an action added in logging spec v5 was missing from the batch aggregation's action list, so it was silently undercounted. The real change is smaller and in line with the whole reaction family; the per-user decline matches the feed layout update."
+  },
+  "answer_axes": ["action name breakdown", "new-surface component over time", "report snapshot vs current mart"],
+  "rubric": [
+    { "id": "R1", "check": "Rebuilt the reported numbers and found the gap between the report snapshot and the current mart", "must": true },
+    { "id": "R2", "check": "Identified the new, unmapped action as the source of the gap", "must": true },
+    { "id": "R3", "check": "Separated users, events and per-user intensity", "must": false },
+    { "id": "R4", "check": "Compared against the other reaction metrics as a control", "must": false }
+  ],
+  "should_not": [
+    { "id": "N1", "claim": "The whole drop is a real behavior decline" },
+    { "id": "N2", "claim": "Rejects the logging change because the action 'never existed'" }
+  ],
+  "snapshot_file": "snapshots/example.json",
+  "reported": {
+    "sources": ["client-reaction"],
+    "metrics": ["followUv", "followCount"],
+    "baseline": ["2026-01-05", "2026-01-11"],
+    "period": ["2026-01-12", "2026-01-18"]
+  },
+  "focus": { "start": "2026-01-12", "end": "2026-01-18" },
+  "axis_checks": [
+    {
+      "axis": "action name", "key": true, "group": "new-action", "in_focus": true,
+      "rules": [{ "tool": "trino|druid", "re": ["action"] }]
+    },
+    {
+      "axis": "surface component", "key": true, "group": "new-action", "in_focus": true,
+      "rules": [{ "tool": "daily_stat_mart", "re": ["surface"], "not": "\"all\"" }]
+    }
+  ],
+  "leak_markers": ["v5.{0,20}(missing|unmapped)"],
+  "variants": {
+    "versioned_calendar": {
+      "calendar": [
+        { "start": "2026-01-08", "end": "2026-01-16", "summary": "Client logging spec v5 rollout (app 3.1, iOS/Android)" },
+        { "start": "2026-01-14", "summary": "Home feed layout update" }
+      ]
+    }
+  }
+}

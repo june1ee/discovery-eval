@@ -1,0 +1,6 @@
+.DS_Store
+*.swp
+*~
+# stale manual backups
+*copy*.md
+__pycache__/
